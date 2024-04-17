@@ -1,11 +1,11 @@
 clear all; close all; clc;
 s=tf('s');
 
-% Par�metros del motor
+% Parámetros del motor
 La = 366e-6;  % inductancia de armadura (H)
 J = 5e-9;      % momento de inercia (kg*m^2)
 Ra = 55.6;    % resistencia de armadura (ohm)
-B = 0;         % coeficiente de fricci�n (N*m/(rad/s))
+B = 0;         % coeficiente de fricción (N*m/(rad/s))
 Ki = 6.49e-3; % constante de voltaje del motor (V/rad/s)
 Km = 6.53e-3; % constante de torque del motor (N*m/A)
 Va=12;
@@ -52,18 +52,24 @@ vi=data(:,4);
 
  plot(t,i);
  
-ichen=i(702:741)
-tchen=t(702:741)
-plot(tchen,ichen)  %saco los valores del grafico
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%La consigna pide wr/Va, yo usare ia/Va, dado que esta ultima me aporta mas
+%informacion
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+ichen=i(702:741) %Armo un arreglo de corrientes
+tchen=t(702:741) %Armo un arreglo de tiempo
+plot(tchen,ichen)  %saco valores del grafico para aplicar CHEN. Estos valores estan equidistantes entre ellos
 
 %Aplico chen para i
 t1=t(703)-0.0351 %le resto el retardo para que la funcion arranque en cero 
 y1=i(703)
 y2=i(704)
 y3=i(705)
-yend=i(741)
+yend=i(741) %valor final estable
 
-K=yend;
+%Aplico algoritmo de CHEN: para Ia
+K=yend; %ganancia
 k1=y1/K-1;
 k2=y2/K-1;
 k3=y3/K-1;
@@ -76,16 +82,18 @@ T1=-t1/log(alfa1);
 T2=-t1/log(alfa2);
 T3=beta*(T1-T2)+T1;
 
-K1=yend/vi(741)    %ganancia
+K1=yend/vi(741)    %ganancia unitaria
 
-%Gchen es mi Vc
-Gchen=K1*(T3*s+1)/((T1*s+1)*(T2*s+1)) %Defino la funcion de transferencia aproximada ; elimino el cero porque el RLC no tiene cero (mirar cuadernillo)
-                                    %Seria mi Vc en fdT
-                          
-plot(tchen,ichen)
+%Gchen es ia
+Gchen=K1*(T3*s+1)/((T1*s+1)*(T2*s+1)) %Defino la funcion de transferencia aproximada
+                                      
+               
+%Grafico
+plot(tchen,wchen1)
 hold on;
-step(12*Gchen)
-hold off;
+[y, t] = step(12*Wchen); 
+plot(t, y)
+hold off;
 
 %Constantes:
 coefG=Gchen.den;
