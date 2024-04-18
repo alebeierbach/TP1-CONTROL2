@@ -38,7 +38,7 @@ w=tf(Ntf(2,:),Dtf); %fila 2 que contiene la salida velocidad
 %ITEM 5
 
 % Especifica la ruta y el nombre del archivo Excel
-nombre_archivo = 'C:\Users\Ale\Desktop\TP1 CONTROL2\Curvas_Medidas_Motor_2024.xls';
+nombre_archivo = 'C:\Users\alebe\OneDrive\Escritorio\TP1CONTROL2\Curvas_Medidas_Motor_2024.xls';
 
 % Especifica el nombre de la hoja que contiene los datos
 nombre_hoja = 1;
@@ -57,8 +57,8 @@ vi=data(:,4);
 %informacion
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-ichen=i(702:741) %Armo un arreglo de corrientes
-tchen=t(702:741) %Armo un arreglo de tiempo
+ichen=i(702:741); %Armo un arreglo de corrientes
+tchen=t(702:741)-0.0351; %Armo un arreglo de tiempo
 plot(tchen,ichen)  %saco valores del grafico para aplicar CHEN. Estos valores estan equidistantes entre ellos
 
 %Aplico chen para i
@@ -88,12 +88,53 @@ K1=yend/vi(741)    %ganancia unitaria
 Gchen=K1*(T3*s+1)/((T1*s+1)*(T2*s+1)) %Defino la funcion de transferencia aproximada
                                       
                
-%Grafico
-plot(tchen,wchen1)
+%Grafico mi FdT y mis datos de corriente de excel
+plot(tchen,ichen)
 hold on;
-[y, t] = step(12*Wchen); 
-plot(t, y)
-hold off;
+[y2, t2] = step(12*Gchen,0.001); 
+plot(t2, y2)
+hold off;
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%Calculo de Wr/Va
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+wr=w(702:741);
+tchen1=t(702:741)-0.0351;
+
+%Aplico Chen para wr/Va:
+t1=t(703)-0.0351 %le resto el retardo para que la funcion arranque en cero y aplicar chen 
+y1=w(703)
+y2=w(704)
+y3=w(705)
+k=w(741) %valor final estable
+
+%Aplico algoritmo de CHEN: para Ia
+K=k; %ganancia
+k1=y1/K-1;
+k2=y2/K-1;
+k3=y3/K-1;
+be=4*k1^3*k3-3*k1^2*k2^2-4*k2^3+k3^2+6*k1*k2*k3;
+alfa1=(k1*k2+k3-sqrt(be))/(2*(k1^2+k2));
+alfa2=(k1*k2+k3+sqrt(be))/(2*(k1^2+k2));
+beta=(k1+alfa2)/(alfa1-alfa2);
+
+T1=-t1/log(alfa1);
+T2=-t1/log(alfa2);
+T3=beta*(T1-T2)+T1;
+
+K2=k/vi(741)    %ganancia unitaria
+
+%Gchen es ia
+Wchen=K2*(T3*s+1)/((T1*s+1)*(T2*s+1)) %Defino la funcion de transferencia aproximada
+
+%Grafico mi FdT y mis datos
+plot(tchen1,wr)
+hold on;
+[y1,t1]=step(12*Wchen,0.002)
+plot(t1,y1)
+hold off;
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 %Constantes:
 coefG=Gchen.den;
@@ -103,4 +144,3 @@ B1=i(741)*Ki1*Km1
 J1=T3*B1
 La1=coefG{1}(1)*Km1*Ki1/J1
 Ra1=(coefG{1}(2)*Km1*Ki1-La1*B1)/J1
-
